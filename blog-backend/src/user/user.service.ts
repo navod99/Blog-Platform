@@ -9,13 +9,14 @@ import { Model } from 'mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {
-    const { email, username } = createUserDto;
+    const { email, username, password } = createUserDto;
 
     // Check if user already exists
     const existingUser = await this.userModel.findOne({
@@ -31,7 +32,13 @@ export class UserService {
       }
     }
 
-    const createdUser = new this.userModel(createUserDto);
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const createdUser = new this.userModel({
+      ...createUserDto,
+      password: hashedPassword,
+    });
+
     return createdUser.save();
   }
 
@@ -127,5 +134,13 @@ export class UserService {
     refreshToken: string | null,
   ): Promise<void> {
     await this.userModel.updateOne({ _id: userId }, { refreshToken });
+  }
+
+  async updatePassword(userId: string, newPassword: string): Promise<void> {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.userModel.updateOne(
+      { _id: userId },
+      { password: hashedPassword },
+    );
   }
 }
