@@ -11,6 +11,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PostModule } from './post/post.module';
 import { CommentModule } from './comment/comment.module';
 import { LikeModule } from './like/like.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { LikeModule } from './like/like.module';
     AuthModule,
     PostModule,
     CommentModule,
-    LikeModule
+    LikeModule,
+    SearchModule
   ],
   controllers: [AppController],
   providers: [AppService,  {
