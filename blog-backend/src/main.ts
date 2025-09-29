@@ -2,12 +2,34 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
+import helmet from 'helmet';
+import * as mongoSanitize from 'express-mongo-sanitize';
 
 async function bootstrap() {
+  const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
+    // Security middlewares
+  app.use(helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  }));
+  
+  // Sanitize user input to prevent MongoDB injection attacks
+  //  app.use(mongoSanitize({
+  //   replaceWith: '_',
+  // }));
+  
+  // CORS configuration
+  const corsConfig = configService.get('security.cors');
+  app.enableCors({
+    origin: corsConfig.origin,
+    credentials: corsConfig.credentials,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+  
   const config = new DocumentBuilder()
     .setTitle('Blog API')
     .setDescription('API for blog platform')
@@ -41,7 +63,7 @@ async function bootstrap() {
 
   const port = configService.get<number>('port') ?? 3000;
   await app.listen(port);
-  console.log(`Application is running on: http://localhost:${port}`);
-  console.log(`API Documentation: http://localhost:${port}/api/`);
+  logger.log(`Application is running on: http://localhost:${port}`);
+  logger.log(`API Documentation: http://localhost:${port}/api/`);
 }
 bootstrap();
