@@ -10,7 +10,6 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     const checkAuth = async () => {
       const user = await getProfile();
-      console.log("user", user);
       if (user) {
         setUser(user);
       }
