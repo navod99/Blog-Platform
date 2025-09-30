@@ -1,7 +1,6 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import axiosInstance from '@/lib/axios';
 
 export async function login(email: string, password: string) {
   try {
@@ -97,6 +96,7 @@ export async function getProfile() {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
+      next: { revalidate: 3600 }
     });
 
     if (!response.ok) {
@@ -104,7 +104,7 @@ export async function getProfile() {
     }
 
     const data = await response.json();
-    return data.data;
+    return data;
   } catch {
     return null;
   }
