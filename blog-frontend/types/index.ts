@@ -1,4 +1,5 @@
 export interface User {
+  _id:string
   id: string;
   email: string;
   username: string;
@@ -18,10 +19,9 @@ export interface Post {
   content: string;
   excerpt?: string;
   author: User;
-  status: 'draft' | 'published' | 'archived';
+  status: 'draft' | 'published';
   tags: string[];
   featuredImage?: string;
-  images?: string[];
   likesCount: number;
   commentsCount: number;
   publishedAt?: string;

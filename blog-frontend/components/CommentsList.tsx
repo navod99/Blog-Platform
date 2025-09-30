@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Comment } from '@/types';
-// import CommentItem from '@/components/CommentItem';
+import CommentItem from '@/components/CommentItem';
 
 interface CommentsListProps {
   initialComments: Comment[];
@@ -22,15 +22,14 @@ export default function CommentsList({ initialComments, postId }: CommentsListPr
 
   return (
     <div className="space-y-6">
-      {/* {comments.map((comment) => (
+      {comments.map((comment) => (
         <CommentItem
           key={comment._id}
           comment={comment}
           postId={postId}
           onDelete={handleDelete}
         />
-      ))} */}
-      <p>Comments rendering is temporarily disabled.</p>
+      ))}
     </div>
   );
 }

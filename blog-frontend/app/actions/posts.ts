@@ -75,9 +75,9 @@ export async function updatePost(id: string, formData: {
 
     revalidatePath('/');
     revalidatePath('/dashboard');
-    revalidatePath(`/posts/${data.data.slug}`);
+    revalidatePath(`/posts/${data.slug}`);
 
-    return { success: true, post: data.data };
+    return { success: true, post: data };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -172,6 +172,34 @@ export async function postComment(postId: string, content: string, parentId?: st
     }
 
     return { success: true };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function updatePostStatus(id: string, status: 'draft' | 'published') {
+  try {
+    const accessToken = (await cookies()).get('accessToken')?.value;
+    if (!accessToken) {
+      throw new Error('Please login to update post status');
+    }
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ status }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to update post status');
+    }
+
+    return { success: true, status };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return { success: false, error: error.message };
