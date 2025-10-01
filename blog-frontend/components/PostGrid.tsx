@@ -8,9 +8,10 @@ interface PostGridProps {
   posts: Post[];
   currentPage: number;
   totalPages: number;
+  pathPrefix: string;
 }
 
-export default function PostGrid({ posts, currentPage, totalPages }: PostGridProps) {
+export default function PostGrid({ posts, currentPage, totalPages, pathPrefix}: PostGridProps) {
   if (posts.length === 0) {
     return (
       <div className="text-center py-12">
@@ -31,6 +32,7 @@ export default function PostGrid({ posts, currentPage, totalPages }: PostGridPro
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
+          pathPrefix={pathPrefix}
         />
       )}
     </>

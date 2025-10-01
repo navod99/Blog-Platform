@@ -55,3 +55,10 @@ export interface PaginatedResponse<T> {
     totalPages: number;
   };
 }
+
+export type paginationType = {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
