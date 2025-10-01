@@ -86,6 +86,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3000/api
 ✅ Draft and published post states
 ✅ Full CRUD operations for posts
 ✅ Commenting system with nested replies
+✅ Image uploads
 ✅ Like/unlike functionality
 ✅ Search and filter posts
 ✅ Pagination for posts and comments
