@@ -25,10 +25,10 @@ export default function Search() {
       {/* Search Trigger Button */}
       <button
         onClick={openSearch}
-        className="flex items-center gap-2 px-4 py-2 text-gray-600 bg-gray-300 hover:bg-gray-200 rounded-lg transition-colors sm:min-w-[250px]"
+        className="flex items-center gap-2 px-4 py-2 text-gray-600 bg-gray-300 hover:bg-gray-200 rounded-lg transition-colors w-full sm:min-w-[250px]"
       >
         <FiSearch className="w-5 h-5" />
-        <span className="hidden sm:inline">Search</span>
+        <span className="inline">Search</span>
       </button>
 
       {/* Search Modal */}
