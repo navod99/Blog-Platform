@@ -37,7 +37,7 @@ export default function SearchBar({ initialQuery = '' }: SearchBarProps) {
 
   return (
     <div className="mb-8">
-      <form onSubmit={handleSearch} className="flex gap-4">
+      <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <input
           type="text"
           value={searchQuery}

@@ -86,7 +86,7 @@ export default function PostEditor({ initialData, postId }: PostEditorProps) {
       toast.success(
         postId ? "Post updated successfully" : "Post created successfully"
       );
-      // router.push("/dashboard");
+      router.push("/dashboard");
     } catch (error) {
       toast.error("An error occurred");
     } finally {

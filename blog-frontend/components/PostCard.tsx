@@ -31,27 +31,38 @@ export default function PostCard({ post }: PostCardProps) {
           </span>
         </div>
         <Link href={`/posts/${post.slug}`}>
-          <h2 className="text-xl font-bold text-gray-900 hover:text-primary-600 mb-2">
+          <h2 className="text-xl font-bold text-gray-900 hover:text-primary-600 mb-2 line-clamp-2 min-h-[3.5rem]">
             {post.title}
           </h2>
         </Link>
-        {post.excerpt && <p className="text-gray-600 mb-4">{post.excerpt}</p>}
-        <div className="flex items-center justify-between">
-          <div className="flex gap-2">
-            {post.tags.slice(0, 3).map((tag) => (
-              <span
-                key={tag}
-                className="px-2 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded-full"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-          <div className="flex items-center gap-4 text-sm text-gray-500">
-            <span>❤️ {post.likesCount}</span>
-            <span>💬 {post.commentsCount}</span>
-          </div>
-        </div>
+        {post.excerpt && (
+          <p className="text-gray-600 mb-4 line-clamp-3 min-h-[4.5rem]">
+            {post.excerpt}
+          </p>
+        )}
+     <div className="flex items-center justify-between">
+  <div className="flex gap-2 flex-wrap min-h-[2rem] items-center">
+    {post.tags.slice(0, 3).map((tag) => (
+      <span
+        key={tag}
+        className="px-2 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded-full"
+      >
+        {tag}
+      </span>
+    ))}
+  </div>
+  <div className="flex flex-row items-center gap-2 sm:gap-4 text-sm text-gray-500 whitespace-nowrap">
+    <span className="flex items-center gap-1">
+      <span>❤️</span>
+      <span>{post.likesCount}</span>
+    </span>
+    <span className="flex items-center gap-1">
+      <span>💬</span>
+      <span>{post.commentsCount}</span>
+    </span>
+  </div>
+</div>
+
       </div>
     </article>
   );
