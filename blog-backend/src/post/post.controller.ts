@@ -8,6 +8,10 @@ import {
   Delete,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -25,12 +29,19 @@ import {
   ApiBody,
   ApiParam,
   ApiQuery,
+  ApiConsumes,
 } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { imageFileFilter } from 'src/upload/utils/file-upload.utils';
+import { UploadService } from 'src/upload/upload.service';
 
 @ApiTags('posts')
 @Controller('posts')
 export class PostController {
-  constructor(private readonly postService: PostService) {}
+  constructor(
+    private readonly postService: PostService,
+    private readonly uploadService: UploadService,
+  ) {}
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
@@ -288,5 +299,60 @@ export class PostController {
   ) {
     await this.postService.remove(id, user.id);
     return { message: 'Post deleted successfully' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/image')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Upload image for post' })
+  @ApiConsumes('multipart/form-data')
+   @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      fileFilter: imageFileFilter,
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
+  async uploadPostImage(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() user: any,
+  ) {
+    const post = await this.postService.findOneForAuth(id);
+
+    if (post.author.toString() !== user.id) {
+      throw new ForbiddenException(
+        'You can only upload images to your own posts',
+      );
+    }
+
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
+    }
+
+    const result = await this.uploadService.uploadImage(file);
+
+    const updatedPost = await this.postService.update(
+      id,
+      {
+        featuredImage: result.secure_url,
+      },
+      user.id,
+    );
+
+    return {
+      url: result.secure_url,
+      post: updatedPost,
+    };
   }
 }

@@ -13,6 +13,7 @@ import { SearchModule } from './search/search.module';
 import databaseConfig from './config/database.config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { UploadModule } from './upload/upload.module';
 import securityConfig from './config/security.config';
 
 @Module({
@@ -54,6 +55,7 @@ import securityConfig from './config/security.config';
     CommentModule,
     LikeModule,
     SearchModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [

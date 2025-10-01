@@ -37,7 +37,7 @@ export async function createPost(formData: {
     revalidatePath('/');
     revalidatePath('/dashboard');
 
-    return { success: true, post: data.data };
+    return { success: true, post: data };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -200,6 +200,39 @@ export async function updatePostStatus(id: string, status: 'draft' | 'published'
     }
 
     return { success: true, status };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function uploadPostImage(postId: string, file: File) {
+  const token = (await cookies()).get('accessToken')?.value;
+  if (!token) {
+    return { success: false, error: 'Unauthorized' };
+  }
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_URL}/posts/${postId}/image`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to upload image');
+    }
+
+    revalidatePath('/');
+    revalidatePath('/dashboard');
+    
+    return { success: true, url: data.url, publicId: data.publicId };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return { success: false, error: error.message };

@@ -1,6 +1,6 @@
-import Link from 'next/link';
-import { Post } from '@/types';
-import Image from 'next/image';
+import Link from "next/link";
+import { Post } from "@/types";
+import Image from "next/image";
 
 interface PostCardProps {
   post: Post;
@@ -10,18 +10,16 @@ export default function PostCard({ post }: PostCardProps) {
   return (
     <article className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
       {post.featuredImage && (
-        // <img
-        //   src={post.featuredImage}
-        //   alt={post.title}
-        //   className="w-full h-48 object-cover"
-        // />
-        <Image
-          src={post.featuredImage}
-          alt={post.title}
-          width={300}
-          height={300}
-        />
+        <div className="relative w-full h-48 overflow-hidden">
+          <Image
+            src={post.featuredImage}
+            alt={post.title}
+            fill
+            className="object-cover"
+          />
+        </div>
       )}
+
       <div className="p-6">
         <div className="flex items-center mb-2">
           <span className="text-sm text-gray-500">
@@ -37,9 +35,7 @@ export default function PostCard({ post }: PostCardProps) {
             {post.title}
           </h2>
         </Link>
-        {post.excerpt && (
-          <p className="text-gray-600 mb-4">{post.excerpt}</p>
-        )}
+        {post.excerpt && <p className="text-gray-600 mb-4">{post.excerpt}</p>}
         <div className="flex items-center justify-between">
           <div className="flex gap-2">
             {post.tags.slice(0, 3).map((tag) => (

@@ -226,4 +226,18 @@ export class PostService {
       .limit(limit)
       .exec();
   }
+
+  async findOneForAuth(id: string): Promise<PostDocument> {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('Invalid ID format');
+    }
+
+    const post = await this.postModel.findById(id).exec(); 
+
+    if (!post) {
+      throw new NotFoundException(`Post with ID ${id} not found`);
+    }
+
+    return post;
+  }
 }
