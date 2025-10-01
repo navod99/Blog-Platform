@@ -28,8 +28,8 @@ export async function toggleCommentLike(commentId: string) {
 
     return { 
       success: true, 
-      liked: data.data.liked || data.liked,
-      likesCount: data.data.likesCount || data.likesCount 
+      liked: data.liked,
+      likesCount: data.likesCount 
     };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
@@ -83,7 +83,7 @@ export async function checkCommentLiked(commentId: string) {
     }
     
     const data = await response.json();
-    return { success: true, liked: data.data || false };
+    return { success: true, liked: data || false };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return { success: true, liked: false };

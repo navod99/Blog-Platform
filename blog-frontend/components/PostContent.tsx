@@ -21,7 +21,7 @@ export default function PostContent({ post }: PostContentProps) {
             width={300}
             height={300}
           /> */}
-          <div className="ml-4">
+          <div className="">
             <p className="font-medium text-gray-900">
               {post.author.firstName} {post.author.lastName}
             </p>
@@ -48,12 +48,15 @@ export default function PostContent({ post }: PostContentProps) {
       </header>
 
       {post.featuredImage && (
-        <Image
-          src={post.featuredImage}
-          alt={post.title}
-          width={300}
-          height={300}
-        />
+        <div className="relative w-full h-64 sm:h-96 md:h-[500px] mb-8 rounded-lg overflow-hidden">
+          <Image
+            src={post.featuredImage}
+            alt={post.title}
+            fill
+            className="object-cover"
+            priority
+          />
+        </div>
       )}
 
       <div

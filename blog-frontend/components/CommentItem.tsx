@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Comment } from '@/types';
 import { useAuthStore } from '@/store/authStore';
 import CommentForm from './CommentForm';
-import { toggleCommentLike, deleteComment } from '@/app/actions/ccomments';
+import { toggleCommentLike, deleteComment } from '@/app/actions/comments';
 import toast from 'react-hot-toast';
 
 interface CommentItemProps {
