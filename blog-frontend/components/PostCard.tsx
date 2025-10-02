@@ -10,15 +10,17 @@ export default function PostCard({ post }: PostCardProps) {
   return (
     <Link href={`/posts/${post.slug}`} className="block group">
       <article className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow h-full">
-        {post.featuredImage && (
+        {post.featuredImage ? (
           <div className="relative w-full h-48 overflow-hidden">
             <Image
-              src={post.featuredImage}
+              src={post.featuredImage || "/images/placeholder.jpg"}
               alt={post.title}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
           </div>
+        ) : (
+          <div className="w-full h-48 bg-slate-400"></div>
         )}
 
         <div className="p-6">

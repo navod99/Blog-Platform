@@ -35,6 +35,8 @@ export async function createPost(formData: {
     }
 
     revalidatePath('/');
+    revalidatePath('/tag/[tagName]', 'page');
+    revalidatePath('/page/[pageNum]', 'page')
     revalidatePath('/dashboard');
 
     return { success: true, post: data };
@@ -74,6 +76,8 @@ export async function updatePost(id: string, formData: {
     }
 
     revalidatePath('/');
+    revalidatePath('/tag/[tagName]', 'page');
+    revalidatePath('/page/[pageNum]', 'page')
     revalidatePath('/dashboard');
     revalidatePath(`/posts/${data.slug}`);
 
@@ -105,6 +109,8 @@ export async function deletePost(id: string) {
     }
 
     revalidatePath('/');
+    revalidatePath('/tag/[tagName]', 'page');
+    revalidatePath('/page/[pageNum]', 'page')
     revalidatePath('/dashboard');
 
     return { success: true };

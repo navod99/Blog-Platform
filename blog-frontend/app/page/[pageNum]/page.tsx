@@ -3,16 +3,8 @@ import HomePage from "@/app/HomePage";
 import { notFound } from "next/navigation";
 
 async function getPosts(page: string): Promise<PaginatedResponse<Post>> {
-  const params = new URLSearchParams({
-    page,
-    limit: "9",
-  });
-
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/posts/published?${params}`,
-    {
-      next: { revalidate: 60 },
-    }
+    `${process.env.NEXT_PUBLIC_API_URL}/posts/published?page=${page}&limit=9`,
   );
 
   if (!res.ok) {
@@ -56,4 +48,13 @@ export default async function PaginatedPage({
       page={pagination.page}
     />
   );
+}
+
+export async function generateStaticParams() {
+  const data = await getPosts("1")
+  const totalPages = data.pagination.totalPages;
+   return Array.from({ length: totalPages }, (_, i) => ({
+    pageNum: String(i + 2)
+  }));
+
 }

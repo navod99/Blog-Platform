@@ -6,17 +6,8 @@ async function getPostsByTag(
   tag: string,
   page: string
 ): Promise<PaginatedResponse<Post>> {
-  const params = new URLSearchParams({
-    page,
-    limit: "9",
-    tag,
-  });
-
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/posts/published?${params}`,
-    {
-      next: { revalidate: 60 },
-    }
+    `${process.env.NEXT_PUBLIC_API_URL}/posts/published?page=${page}&limit=9&tag=${tag}`,
   );
 
   if (!res.ok) {
@@ -47,7 +38,7 @@ export default async function TagPaginatedPage({
   params: { tagName: string; pageNum: string };
 }) {
   const resolvedParams = await params;
-  const tagName = decodeURIComponent(resolvedParams.tagName);
+  const tagName = resolvedParams.tagName
   const pageNum = parseInt(resolvedParams.pageNum);
 
   // Validate page number
@@ -81,7 +72,7 @@ export default async function TagPaginatedPage({
 
 export async function generateStaticParams() {
   // Pre-generate first 5 pages at build time
-  return Array.from({ length: 5 }, (_, i) => ({
+  return Array.from({ length: 2 }, (_, i) => ({
     pageNum: String(i + 2)
   }));
 }

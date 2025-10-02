@@ -4,9 +4,6 @@ import HomePage from "@/app/HomePage";
 async function getPosts(page: string = "1"): Promise<PaginatedResponse<Post>> {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/posts/published?page=${page}&limit=9`,
-    {
-      next: { revalidate: 60 },
-    }
   );
 
   if (!res.ok) {
