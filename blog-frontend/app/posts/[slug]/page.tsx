@@ -17,7 +17,6 @@ async function getAllPosts(page: string = "1"): Promise<PaginatedResponse<Post>>
 
 async function getPost(slug: string) {
   const res = await fetch(`${process.env.API_URL}/posts/slug/${slug}`, {
-    cache: 'force-cache',
   });
 
   if (!res.ok) {

@@ -8,7 +8,6 @@ async function getPostsByTag(
 ): Promise<PaginatedResponse<Post>> {
   const res = await fetch(
     `${process.env.API_URL}/posts/published?page=${page}&limit=9&tag=${tag}`,
-    { cache: 'force-cache'}
   );
 
   if (!res.ok) {
