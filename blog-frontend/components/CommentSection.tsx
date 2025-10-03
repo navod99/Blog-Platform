@@ -4,8 +4,8 @@ import CommentForm from '@/components/CommentForm';
 
 async function getComments(postId: string) {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/comments/post/${postId}`,
-    { cache: 'no-store' }
+    `${process.env.API_URL}/comments/post/${postId}`,
+    { cache: 'force-cache' }
   );
 
   if (!res.ok) {
@@ -21,7 +21,7 @@ async function checkAuth() {
   return !!token;
 }
 
-export default async function CommentSection({ postId }: { postId: string }) {
+export default async function CommentSection({ postId, postSlug }: { postId: string; postSlug: string }) {
   const [comments, isAuthenticated] = await Promise.all([
     getComments(postId),
     checkAuth(),
@@ -32,7 +32,7 @@ export default async function CommentSection({ postId }: { postId: string }) {
       <h2 className="text-2xl font-bold mb-6">Comments ({comments.length})</h2>
       
       {isAuthenticated ? (
-        <CommentForm postId={postId} />
+        <CommentForm postId={postId} postSlug={postSlug} />
       ) : (
         <div className="mb-8 p-4 bg-gray-100 rounded-lg text-center">
           <p>
@@ -45,7 +45,7 @@ export default async function CommentSection({ postId }: { postId: string }) {
         </div>
       )}
 
-      <CommentsList initialComments={comments} postId={postId} />
+      <CommentsList initialComments={comments} postId={postId} postSlug={postSlug}/>
     </section>
   );
 }

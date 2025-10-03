@@ -1,17 +1,19 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Comment } from '@/types';
 import { useAuthStore } from '@/store/authStore';
 import CommentForm from './CommentForm';
-import { toggleCommentLike, deleteComment } from '@/app/actions/comments';
+import { toggleCommentLike, deleteComment, checkCommentLiked } from '@/app/actions/comments';
+import Image from 'next/image';
 import toast from 'react-hot-toast';
+import { IoChevronDown, IoChevronUp } from 'react-icons/io5';
 
 interface CommentItemProps {
   comment: Comment;
   postId: string;
-  postSlug?: string;
+  postSlug: string;
   initialLiked?: boolean;
   onDelete: (commentId: string) => void;
   depth?: number;
@@ -28,11 +30,22 @@ export default function CommentItem({
   const router = useRouter();
   const { user, isAuthenticated } = useAuthStore();
   const [showReplyForm, setShowReplyForm] = useState(false);
+  const [showReplies, setShowReplies] = useState(false);
+  const [replies, setReplies] = useState<Comment[]>([]);
+  const [loadingReplies, setLoadingReplies] = useState(false);
   const [liked, setLiked] = useState(initialLiked);
   const [likesCount, setLikesCount] = useState(comment.likesCount);
-  const [isPending, startTransition] = useTransition();
+  const [isLiking, setIsLiking] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-    if (!comment.author) {
+  useEffect(() => {
+    (async () => {
+      const result = await checkCommentLiked(comment._id);
+      setLiked(result.liked);
+    })();
+  }, [comment._id]);
+
+  if (!comment.author) {
     console.error('Comment missing author:', comment);
     return null;
   }
@@ -40,7 +53,49 @@ export default function CommentItem({
   const authorId = comment.author._id || comment.author.id;
   const userId = user?._id || user?.id;
   const isAuthor = userId && authorId && userId === authorId;
-  const maxDepth = 3; // Limit nesting depth
+  const maxDepth = 3;
+  const hasReplies = comment.replies && comment.replies.length > 0;
+  const repliesCount = comment.replies?.length || 0;;
+
+  const fetchReplies = async () => {
+    if (replies.length > 0) {
+      // Already fetched, just toggle visibility
+      setShowReplies(!showReplies);
+      return;
+    }
+
+    setLoadingReplies(true);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/comments/post/${postId}?parentComment=${comment._id}`,
+        { cache: 'no-store' }
+      );
+
+
+      if (res.ok) {
+        const data = await res.json();
+        setReplies(data.comments || []);
+        setShowReplies(true);
+      } else {
+        toast.error('Failed to load replies');
+      }
+    } catch (error) {
+      console.error('Error fetching replies:', error);
+      toast.error('Failed to load replies');
+    } finally {
+      setLoadingReplies(false);
+    }
+  };
+
+  const handleToggleReplies = () => {
+    if (showReplies) {
+      // Just hide, don't fetch again
+      setShowReplies(false);
+    } else {
+      // Fetch if needed
+      fetchReplies();
+    }
+  };
 
   const handleLike = async () => {
     if (!isAuthenticated) {
@@ -49,17 +104,17 @@ export default function CommentItem({
       return;
     }
 
-    startTransition(async () => {
-      const result = await toggleCommentLike(comment._id);
-      
-      if (result.success && result.liked !== undefined) {
-        setLiked(result.liked);
-        setLikesCount(result.likesCount || likesCount);
-        toast.success(result.liked ? 'Comment liked' : 'Comment unliked');
-      } else {
-        toast.error(result.error || 'Failed to toggle like');
-      }
-    });
+    setIsLiking(true);
+    const result = await toggleCommentLike(comment._id, postSlug);
+    
+    if (result.success && result.liked !== undefined) {
+      setLiked(result.liked);
+      setLikesCount(result.likesCount);
+      toast.success(result.liked ? 'Comment liked' : 'Comment unliked');
+    } else {
+      toast.error(result.error || 'Failed to toggle like');
+    }
+    setIsLiking(false);
   };
 
   const handleDelete = async () => {
@@ -67,22 +122,28 @@ export default function CommentItem({
       return;
     }
 
-    startTransition(async () => {
-      const result = await deleteComment(comment._id, postSlug);
-      
-      if (result.success) {
-        toast.success('Comment deleted successfully');
-        onDelete(comment._id);
-        router.refresh();
-      } else {
-        toast.error(result.error || 'Failed to delete comment');
-      }
-    });
+    setIsDeleting(true);
+    const result = await deleteComment(comment._id, postSlug);
+    
+    if (result.success) {
+      toast.success('Comment deleted successfully');
+      onDelete(comment._id);
+      router.refresh();
+    } else {
+      toast.error(result.error || 'Failed to delete comment');
+    }
+    setIsDeleting(false);
   };
 
   const handleReplySuccess = () => {
     setShowReplyForm(false);
-    router.refresh();
+    // Refresh replies after adding a new one
+    fetchReplies();
+  };
+
+  const handleNestedDelete = (commentId: string) => {
+    // Remove deleted reply from local state
+    setReplies(prev => prev.filter(r => r._id !== commentId));
   };
 
   return (
@@ -90,16 +151,19 @@ export default function CommentItem({
       <div className="bg-white rounded-lg p-4 border border-gray-200">
         {/* Author Info */}
         <div className="flex items-start gap-3 mb-3">
-          <img
+          <Image
             src={
               comment.author.avatar ||
               `https://ui-avatars.com/api/?name=${comment.author.firstName}+${comment.author.lastName}`
             }
             alt={`${comment.author.firstName} ${comment.author.lastName}`}
-            className="w-10 h-10 rounded-full"
+            width={40}
+            height={40}
+            className="rounded-full object-cover"
+            unoptimized
           />
           <div className="flex-1">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <p className="font-medium text-gray-900">
                 {comment.author.firstName} {comment.author.lastName}
               </p>
@@ -144,11 +208,11 @@ export default function CommentItem({
         <div className="flex items-center gap-4 text-sm">
           <button
             onClick={handleLike}
-            disabled={!isAuthenticated || isPending}
+            disabled={!isAuthenticated || isLiking}
             className={`flex items-center gap-1 transition-colors ${
               liked ? "text-red-600" : "text-gray-600 hover:text-red-600"
             } ${
-              !isAuthenticated || isPending
+              !isAuthenticated || isLiking
                 ? "opacity-50 cursor-not-allowed"
                 : ""
             }`}
@@ -160,20 +224,43 @@ export default function CommentItem({
           {isAuthenticated && depth < maxDepth && (
             <button
               onClick={() => setShowReplyForm(!showReplyForm)}
-              disabled={isPending}
+              disabled={isDeleting || isLiking}
               className="text-gray-600 hover:text-primary-600 transition-colors disabled:opacity-50"
             >
               Reply
             </button>
           )}
 
+          {/* Show/Hide Replies Button */}
+          {hasReplies && (
+            <button
+              onClick={handleToggleReplies}
+              disabled={loadingReplies}
+              className="flex items-center gap-1 text-gray-600 hover:text-primary-600 transition-colors disabled:opacity-50"
+            >
+              {loadingReplies ? (
+                <span>Loading...</span>
+              ) : showReplies ? (
+                <>
+                  <IoChevronUp className="w-4 h-4" />
+                  <span>Hide replies ({repliesCount})</span>
+                </>
+              ) : (
+                <>
+                  <IoChevronDown className="w-4 h-4" />
+                  <span>Show replies ({repliesCount})</span>
+                </>
+              )}
+            </button>
+          )}
+
           {isAuthor && (
             <button
               onClick={handleDelete}
-              disabled={isPending}
+              disabled={isDeleting}
               className="text-gray-600 hover:text-red-600 transition-colors disabled:opacity-50"
             >
-              {isPending ? "Deleting..." : "Delete"}
+              {isDeleting ? "Deleting..." : "Delete"}
             </button>
           )}
         </div>
@@ -186,16 +273,16 @@ export default function CommentItem({
               parentId={comment._id}
               onSuccess={handleReplySuccess}
               onCancel={() => setShowReplyForm(false)}
+              postSlug={postSlug}
             />
           </div>
         )}
       </div>
 
-      {/* Nested Replies */}
-      {comment.replies && comment.replies.length > 0 && (
+      {/* Nested Replies - Loaded dynamically */}
+      {showReplies && replies.length > 0 && (
         <div className="mt-4">
-          {comment.replies.map((reply, index) => {
-            // Safety check for missing _id
+          {replies.map((reply, index) => {
             const key = reply._id || `reply-${comment._id}-${index}`;
 
             return (
@@ -204,7 +291,7 @@ export default function CommentItem({
                 comment={reply}
                 postId={postId}
                 postSlug={postSlug}
-                onDelete={onDelete}
+                onDelete={handleNestedDelete}
                 depth={depth + 1}
               />
             );

@@ -5,20 +5,21 @@ import { Post, User } from '@/types';
 
 async function getUserPosts(filter: string = 'all') {
   const token = (await cookies()).get('accessToken')?.value;
-
   if (!token) {
     redirect('/login');
   }
 
   // Fetch user profile to get user ID
-  const profileRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile`, {
+  const profileRes = await fetch(`${process.env.API_URL}/auth/profile`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
   });
 
+
   if (!profileRes.ok) {
     redirect('/login');
   }
+
 
   const profileData: User = await profileRes.json();
   const userId = profileData.id;
@@ -28,10 +29,9 @@ async function getUserPosts(filter: string = 'all') {
   if (filter !== 'all') params.append('status', filter);
 
   const postsRes = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/posts/author/${userId}?${params}`,
+    `${process.env.API_URL}/posts/author/${userId}?${params}`,
     {
       headers: { Authorization: `Bearer ${token}` },
-      cache: 'no-store',
     }
   );
 
@@ -72,3 +72,4 @@ export default async function DashboardPage({
     />
   );
 }
+

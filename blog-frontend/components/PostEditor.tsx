@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { createPost, updatePost, uploadPostImage } from "@/app/actions/posts";
 import toast from "react-hot-toast";
 import ImageUploader from "@/components/ImageUploader";
 import { Post } from "@/types";
+import { z } from "zod";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 
 const RichTextEditor = dynamic(() => import("@/components/RichTextEditor"), {
   ssr: false,
@@ -15,6 +18,27 @@ const RichTextEditor = dynamic(() => import("@/components/RichTextEditor"), {
   ),
 });
 
+// Zod validation schema
+const postSchema = z.object({
+  title: z.string().min(1, "Title is required").max(200, "Title is too long"),
+  content: z
+    .string()
+    .min(1, "Content is required")
+    .refine(
+      (val) => {
+        const textOnly = val.replace(/<[^>]*>/g, "").trim();
+        return textOnly.length > 0;
+      },
+      { message: "Content is required" }
+    ),
+  excerpt: z.string().max(500, "Excerpt is too long").optional().or(z.literal("")),
+  tags: z.string().optional().or(z.literal("")),
+  status: z.enum(["draft", "published"]),
+  featuredImage: z.string().optional().or(z.literal("")),
+});
+
+type PostFormData = z.infer<typeof postSchema>;
+
 interface PostEditorProps {
   initialData?: Post;
   postId?: string;
@@ -22,46 +46,35 @@ interface PostEditorProps {
 
 export default function PostEditor({ initialData, postId }: PostEditorProps) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<{
-    title: string;
-    content: string;
-    excerpt: string;
-    tags: string;
-    status: "draft" | "published";
-    featuredImage: string;
-  }>({
-    title: initialData?.title || "",
-    content: initialData?.content || "",
-    excerpt: initialData?.excerpt || "",
-    tags: initialData?.tags?.join(", ") || "",
-    status: (initialData?.status as "draft" | "published") || "draft",
-    featuredImage: initialData?.featuredImage || "",
-  });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<PostFormData>({
+    resolver: zodResolver(postSchema),
+    defaultValues: {
+      title: initialData?.title || "",
+      content: initialData?.content || "",
+      excerpt: initialData?.excerpt || "",
+      tags: initialData?.tags?.join(", ") || "",
+      status: (initialData?.status as "draft" | "published") || "draft",
+      featuredImage: initialData?.featuredImage || "",
+    },
+  });
 
-    if (!formData.title || !formData.content) {
-      toast.error("Title and content are required");
-      return;
-    }
-
-    setLoading(true);
+  const onSubmit = async (data: PostFormData) => {
     try {
-      const tags = formData.tags
-        ? formData.tags.split(",").map((t) => t.trim())
+      const tags = data.tags
+        ? data.tags.split(",").map((t) => t.trim())
         : [];
-      const status =
-        formData.status === "draft" || formData.status === "published"
-          ? formData.status
-          : "draft";
-      const postData = { ...formData, tags, status };
+      const postData = { ...data, tags };
 
       // Step 1: Create or update the post
       const result = postId
-        ? await updatePost(postId, { ...postData, status })
+        ? await updatePost(postId, postData)
         : await createPost(postData);
 
       if (!result.success) {
@@ -89,25 +102,26 @@ export default function PostEditor({ initialData, postId }: PostEditorProps) {
       router.push("/dashboard");
     } catch (error) {
       toast.error("An error occurred");
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Title
+          Title <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+          {...register("title")}
+          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+            errors.title ? "border-red-500" : "border-gray-300"
+          }`}
           placeholder="Enter post title"
-          required
         />
+        {errors.title && (
+          <p className="mt-1 text-sm text-red-500">{errors.title.message}</p>
+        )}
       </div>
 
       <div>
@@ -115,39 +129,54 @@ export default function PostEditor({ initialData, postId }: PostEditorProps) {
           Excerpt
         </label>
         <textarea
-          value={formData.excerpt}
-          onChange={(e) =>
-            setFormData({ ...formData, excerpt: e.target.value })
-          }
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+          {...register("excerpt")}
+          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+            errors.excerpt ? "border-red-500" : "border-gray-300"
+          }`}
           rows={3}
           placeholder="Brief description of your post"
         />
+        {errors.excerpt && (
+          <p className="mt-1 text-sm text-red-500">{errors.excerpt.message}</p>
+        )}
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Content
+          Content <span className="text-red-500">*</span>
         </label>
-        <RichTextEditor
-          value={formData.content}
-          onChange={(value) => setFormData({ ...formData, content: value })}
-          placeholder="Write your post content here..."
+        <div className="mb-4">
+          <Controller
+            name="content"
+            control={control}
+            render={({ field }) => (
+              <RichTextEditor
+                value={field.value}
+                onChange={field.onChange}
+                placeholder="Write your post content here..."
+              />
+            )}
+          />
+        </div>
+        {errors.content && (
+          <p className="mt-1 text-sm text-red-500">{errors.content.message}</p>
+        )}
+      </div>
+
+      <div className="pt-8 sm:pt-4">
+        <ImageUploader
+          currentImage={initialData?.featuredImage || ""}
+          onFileSelected={setSelectedFile}
         />
       </div>
 
-      <ImageUploader
-        currentImage={formData.featuredImage}
-        onFileSelected={setSelectedFile}
-      />
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Tags (comma-separated)
         </label>
         <input
           type="text"
-          value={formData.tags}
-          onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+          {...register("tags")}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
           placeholder="e.g., javascript, react, nextjs"
         />
@@ -158,13 +187,7 @@ export default function PostEditor({ initialData, postId }: PostEditorProps) {
           Status
         </label>
         <select
-          value={formData.status}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              status: e.target.value as "draft" | "published",
-            })
-          }
+          {...register("status")}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
         >
           <option value="draft">Draft</option>
@@ -175,10 +198,10 @@ export default function PostEditor({ initialData, postId }: PostEditorProps) {
       <div className="flex gap-4">
         <button
           type="submit"
-          disabled={loading}
+          disabled={isSubmitting}
           className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
         >
-          {loading ? "Saving..." : postId ? "Save Changes" : "Create Post"}
+          {isSubmitting ? "Saving..." : postId ? "Save Changes" : "Create Post"}
         </button>
         <button
           type="button"

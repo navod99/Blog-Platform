@@ -25,7 +25,7 @@ export default function RootLayout({
           <main className="min-h-screen bg-gray-50">
             {children}
           </main>
-          <Toaster position="top-right" />
+          <Toaster position="bottom-right" />
         </AuthProvider>
       </body>
     </html>

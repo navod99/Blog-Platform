@@ -26,7 +26,7 @@ export default function Dashboard({ posts, user, stats, currentFilter }: Dashboa
 
       <DashboardStats stats={stats} />
 
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
         <DashboardFilter currentFilter={currentFilter} />
 
         <Link
@@ -43,7 +43,7 @@ export default function Dashboard({ posts, user, stats, currentFilter }: Dashboa
 
 function DashboardFilter({ currentFilter = 'all' }: { currentFilter?: string }) {
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
       <Link
         href="/dashboard"
         className={`px-4 py-2 rounded-lg ${

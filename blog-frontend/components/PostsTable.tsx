@@ -85,88 +85,154 @@ export default function PostsTable({ posts: initialPosts }: PostsTableProps) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
-      <table className="w-full">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Title
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Status
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Date
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Stats
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {posts.map((post) => (
-            <tr key={post._id}>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <Link
-                  href={`/posts/${post.slug}`}
-                  className="text-sm font-medium text-gray-900 hover:text-primary-600"
-                >
-                  {post.title}
-                </Link>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span
-                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    post.status === "published"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-yellow-100 text-yellow-800"
-                  }`}
-                >
-                  {post.status}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {new Date(post.createdAt).toLocaleDateString()}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                ❤️ {post.likesCount} | 💬 {post.commentsCount}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <div className="flex gap-2">
-                  <Link
-                    href={`/posts/edit/${post._id}`}
-                    className="text-primary-600 hover:text-primary-900"
-                  >
-                    Edit
-                  </Link>
-                  <button
-                    onClick={() =>
-                      handleStatusChange(
-                        post._id,
-                        post.status === "published" ? "draft" : "published"
-                      )
-                    }
-                    disabled={loading === post._id}
-                    className="text-yellow-600 hover:text-yellow-900 disabled:opacity-50"
-                  >
-                    {post.status === "published" ? "Unpublish" : "Publish"}
-                  </button>
-                  <button
-                    onClick={() => handleDelete(post._id)}
-                    disabled={loading === post._id}
-                    className="text-red-600 hover:text-red-900 disabled:opacity-50"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </td>
+    <>
+      <div className="hidden lg:block bg-white rounded-lg shadow overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Title
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Date
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Stats
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {posts.map((post) => (
+              <tr key={post._id}>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <Link
+                    href={`/posts/${post.slug}`}
+                    className="text-sm font-medium text-gray-900 hover:text-primary-600"
+                  >
+                    {post.title}
+                  </Link>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span
+                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      post.status === "published"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {post.status}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {new Date(post.createdAt).toLocaleDateString()}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  ❤️ {post.likesCount} | 💬 {post.commentsCount}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <div className="flex gap-2">
+                    <Link
+                      href={`/posts/edit/${post._id}`}
+                      className="text-primary-600 hover:text-primary-900"
+                    >
+                      Edit
+                    </Link>
+                    <button
+                      onClick={() =>
+                        handleStatusChange(
+                          post._id,
+                          post.status === "published" ? "draft" : "published"
+                        )
+                      }
+                      disabled={loading === post._id}
+                      className="text-yellow-600 hover:text-yellow-900 disabled:opacity-50"
+                    >
+                      {post.status === "published" ? "Unpublish" : "Publish"}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(post._id)}
+                      disabled={loading === post._id}
+                      className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="lg:hidden space-y-4">
+        {posts.map((post) => (
+          <div key={post._id} className="bg-white rounded-lg shadow p-4">
+            {/* Title */}
+            <Link
+              href={`/posts/${post.slug}`}
+              className="text-lg font-semibold text-gray-900 hover:text-primary-600 block mb-2"
+            >
+              {post.title}
+            </Link>
+
+            {/* Status and Date */}
+            <div className="flex items-center justify-between mb-3">
+              <span
+                className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                  post.status === "published"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-yellow-100 text-yellow-800"
+                }`}
+              >
+                {post.status}
+              </span>
+              <span className="text-sm text-gray-500">
+                {new Date(post.createdAt).toLocaleDateString()}
+              </span>
+            </div>
+
+            {/* Stats */}
+            <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
+              <span>❤️ {post.likesCount}</span>
+              <span>💬 {post.commentsCount}</span>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-200">
+              <Link
+                href={`/posts/edit/${post._id}`}
+                className="flex-1 text-center px-3 py-2 text-sm font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
+              >
+                Edit
+              </Link>
+              <button
+                onClick={() =>
+                  handleStatusChange(
+                    post._id,
+                    post.status === "published" ? "draft" : "published"
+                  )
+                }
+                disabled={loading === post._id}
+                className="flex-1 px-3 py-2 text-sm font-medium text-yellow-600 bg-yellow-50 rounded-lg hover:bg-yellow-100 disabled:opacity-50 transition-colors"
+              >
+                {post.status === "published" ? "Unpublish" : "Publish"}
+              </button>
+              <button
+                onClick={() => handleDelete(post._id)}
+                disabled={loading === post._id}
+                className="flex-1 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 disabled:opacity-50 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
