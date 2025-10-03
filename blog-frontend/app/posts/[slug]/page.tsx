@@ -1,10 +1,23 @@
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import PostPage from '@/app/PostPage';
+import { PaginatedResponse, Post } from '@/types';
+
+async function getAllPosts(page: string = "1"): Promise<PaginatedResponse<Post>> {
+  const res = await fetch(
+    `${process.env.API_URL}/posts?page=${page}&limit=100`,
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch posts");
+  }
+
+  return res.json();
+}
 
 async function getPost(slug: string) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/slug/${slug}`, {
-    cache: 'no-store',
+  const res = await fetch(`${process.env.API_URL}/posts/slug/${slug}`, {
+    cache: 'force-cache',
   });
 
   if (!res.ok) {
@@ -22,7 +35,7 @@ async function checkIfLiked(postId: string) {
 
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/likes/check/${postId}?targetType=post`,
+      `${process.env.API_URL}/likes/check/${postId}?targetType=post`,
       {
         headers: { Authorization: `Bearer ${token}` },
       }
@@ -55,4 +68,12 @@ export default async function PostDetailsPage({
       commentsCount={post.commentsCount}
     />
   );
+}
+
+export async function generateStaticParams() {
+  const data = await getAllPosts()
+  const posts = data.posts || [];
+  return posts.map((post) => ({
+    slug: post.slug,
+  }));
 }

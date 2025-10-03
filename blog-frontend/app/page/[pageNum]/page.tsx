@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 
 async function getPosts(page: string): Promise<PaginatedResponse<Post>> {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/posts/published?page=${page}&limit=9`,
+    `${process.env.API_URL}/posts/published?page=${page}&limit=9`,
+    { cache: 'force-cache' }
   );
 
   if (!res.ok) {

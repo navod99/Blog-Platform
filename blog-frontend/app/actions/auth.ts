@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 
 export async function login(email: string, password: string) {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+    const response = await fetch(`${process.env.API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -44,7 +44,7 @@ export async function register(userData: {
   lastName: string;
 }) {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
+    const response = await fetch(`${process.env.API_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData),
@@ -91,7 +91,7 @@ export async function getProfile() {
   }
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile`, {
+    const response = await fetch(`${process.env.API_URL}/auth/profile`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,

@@ -7,7 +7,8 @@ async function getPostsByTag(
   page: string
 ): Promise<PaginatedResponse<Post>> {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/posts/published?page=${page}&limit=9&tag=${tag}`,
+    `${process.env.API_URL}/posts/published?page=${page}&limit=9&tag=${tag}`,
+    { cache: 'force-cache' }
   );
 
   if (!res.ok) {
@@ -19,7 +20,7 @@ async function getPostsByTag(
 
 async function getAllTags(): Promise<string[]> {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/posts/published?limit=500`,
+    `${process.env.API_URL}/posts/published?limit=500`,
     {
       next: { revalidate: 3600 },
     }

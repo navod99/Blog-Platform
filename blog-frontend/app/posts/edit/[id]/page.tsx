@@ -2,7 +2,7 @@ import PostEditor from '@/components/PostEditor';
 import { notFound } from 'next/navigation';
 
 async function getPost(id: string) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/${id}`, {
+  const res = await fetch(`${process.env.API_URL}/posts/${id}`, {
     cache: 'no-store',
   });
 

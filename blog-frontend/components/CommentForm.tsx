@@ -10,13 +10,15 @@ interface CommentFormProps {
   parentId?: string;
   onSuccess?: () => void;
   onCancel?: () => void;
+  postSlug: string;
 }
 
 export default function CommentForm({ 
   postId, 
   parentId, 
   onSuccess, 
-  onCancel 
+  onCancel,
+  postSlug, 
 }: CommentFormProps) {
   const router = useRouter();
   const [content, setContent] = useState('');
@@ -26,7 +28,7 @@ export default function CommentForm({
     e.preventDefault();
     setSubmitting(true);
     try {
-      const response = await postComment(postId, content, parentId);
+      const response = await postComment(postId, content, postSlug, parentId);
       if (!response.success) {
         toast.error(response.error);
         if (response.error === "Please login to post a comment") {

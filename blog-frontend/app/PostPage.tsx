@@ -30,7 +30,7 @@ export default function PostPage({
         commentsCount={commentsCount}
       />
       <Suspense fallback={<LoadingSpinner />}>
-        <CommentSection postId={postId} />
+        <CommentSection postId={postId} postSlug={post.slug} />
       </Suspense>
     </article>
   );

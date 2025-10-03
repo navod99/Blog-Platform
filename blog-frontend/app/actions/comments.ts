@@ -1,15 +1,16 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 
-export async function toggleCommentLike(commentId: string) {
+export async function toggleCommentLike(commentId: string, postSlug: string ) {
   try {
     const accessToken = (await cookies()).get('accessToken')?.value;
     if (!accessToken) {
       throw new Error('Please login to like comments');
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/likes/toggle`, {
+    const response = await fetch(`${process.env.API_URL}/likes/toggle`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -26,6 +27,7 @@ export async function toggleCommentLike(commentId: string) {
       throw new Error(data.message || 'Failed to toggle like');
     }
 
+    revalidatePath(`/posts/${postSlug}`);
     return { 
       success: true, 
       liked: data.liked,
@@ -44,13 +46,17 @@ export async function deleteComment(commentId: string, postSlug?: string) {
       throw new Error('Please login to delete comments');
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/comments/${commentId}`, {
+    const response = await fetch(`${process.env.API_URL}/comments/${commentId}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
     });
 
+    revalidatePath(`/posts/${postSlug}`);
+    revalidatePath('/');
+    revalidatePath('/tag/[tagName]', 'page');
+    revalidatePath('/page/[pageNum]', 'page')
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.message || 'Failed to delete comment');
@@ -71,7 +77,7 @@ export async function checkCommentLiked(commentId: string) {
     }
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/likes/check/${commentId}?targetType=comment`,
+      `${process.env.API_URL}/likes/check/${commentId}?targetType=comment`,
       {
         headers: { Authorization: `Bearer ${accessToken}` },
         cache: 'no-store',

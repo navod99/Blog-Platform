@@ -1,9 +1,8 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function createPost(formData: {
   title: string;
@@ -19,7 +18,7 @@ export async function createPost(formData: {
   }
 
   try {
-    const response = await fetch(`${API_URL}/posts`, {
+    const response = await fetch(`${process.env.API_URL}/posts`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -37,7 +36,6 @@ export async function createPost(formData: {
     revalidatePath('/');
     revalidatePath('/tag/[tagName]', 'page');
     revalidatePath('/page/[pageNum]', 'page')
-    revalidatePath('/dashboard');
 
     return { success: true, post: data };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,7 +58,7 @@ export async function updatePost(id: string, formData: {
   }
 
   try {
-    const response = await fetch(`${API_URL}/posts/${id}`, {
+    const response = await fetch(`${process.env.API_URL}/posts/${id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -78,7 +76,6 @@ export async function updatePost(id: string, formData: {
     revalidatePath('/');
     revalidatePath('/tag/[tagName]', 'page');
     revalidatePath('/page/[pageNum]', 'page')
-    revalidatePath('/dashboard');
     revalidatePath(`/posts/${data.slug}`);
 
     return { success: true, post: data };
@@ -96,7 +93,7 @@ export async function deletePost(id: string) {
   }
 
   try {
-    const response = await fetch(`${API_URL}/posts/${id}`, {
+    const response = await fetch(`${process.env.API_URL}/posts/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -107,11 +104,10 @@ export async function deletePost(id: string) {
       const data = await response.json();
       throw new Error(data.message || 'Failed to delete post');
     }
-
+    const data = await response.json();
     revalidatePath('/');
     revalidatePath('/tag/[tagName]', 'page');
     revalidatePath('/page/[pageNum]', 'page')
-    revalidatePath('/dashboard');
 
     return { success: true };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -127,7 +123,7 @@ export async function toggleLike(postId: string) {
       throw new Error('Please login to like posts');
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/likes/toggle`, {
+    const response = await fetch(`${process.env.API_URL}/likes/toggle`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -141,6 +137,9 @@ export async function toggleLike(postId: string) {
       throw new Error(data.message || 'Failed to toggle like');
     }
 
+    revalidatePath(`/`);
+    revalidatePath('/tag/[tagName]', 'page');
+    revalidatePath('/page/[pageNum]', 'page')
     return { success: true, liked: data.liked, likesCount: data.likesCount };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
@@ -148,21 +147,26 @@ export async function toggleLike(postId: string) {
   }
 }
 
-export async function postComment(postId: string, content: string, parentId?: string) {
+export async function postComment(
+  postId: string,
+  content: string,
+  postSlug: string,
+  parentId?: string,
+) {
   try {
-    const accessToken = (await cookies()).get('accessToken')?.value;
+    const accessToken = (await cookies()).get("accessToken")?.value;
     if (!accessToken) {
-      throw new Error('Please login to post a comment');
+      throw new Error("Please login to post a comment");
     }
 
     if (!content.trim()) {
-      throw new Error('Please write a comment');
+      throw new Error("Please write a comment");
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/comments`, {
-      method: 'POST',
+    const response = await fetch(`${process.env.API_URL}/comments`, {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify({
@@ -173,12 +177,16 @@ export async function postComment(postId: string, content: string, parentId?: st
     });
 
     const data = await response.json();
+    revalidatePath('/tag/[tagName]', 'page');
+    revalidatePath(`/posts/${postSlug}`);
+    revalidateTag('/');
+    // revalidatePath(`/`);
     if (!response.ok) {
-      throw new Error(data.message || 'Failed to post comment');
+      throw new Error(data.message || "Failed to post comment");
     }
 
     return { success: true };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return { success: false, error: error.message };
   }
@@ -191,7 +199,7 @@ export async function updatePostStatus(id: string, status: 'draft' | 'published'
       throw new Error('Please login to update post status');
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/posts/${id}`, {
+    const response = await fetch(`${process.env.API_URL}/posts/${id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -205,6 +213,9 @@ export async function updatePostStatus(id: string, status: 'draft' | 'published'
       throw new Error(data.message || 'Failed to update post status');
     }
 
+    revalidatePath('/');
+    revalidatePath('/tag/[tagName]', 'page');
+    revalidatePath('/page/[pageNum]', 'page')
     return { success: true, status };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
@@ -221,7 +232,7 @@ export async function uploadPostImage(postId: string, file: File) {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch(`${API_URL}/posts/${postId}/image`, {
+    const response = await fetch(`${process.env.API_URL}/posts/${postId}/image`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -236,7 +247,6 @@ export async function uploadPostImage(postId: string, file: File) {
     }
 
     revalidatePath('/');
-    revalidatePath('/dashboard');
     
     return { success: true, url: data.url, publicId: data.publicId };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
